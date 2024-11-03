@@ -13,15 +13,13 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
-
   const [message, setMessage] = useState(null)
 
-
-  useEffect( () => {
+  useEffect(() => {
     async function fetchData() {
       const allBlogs = await blogService.getAll()
       // sort the blog posts by the number of likes
-      allBlogs.sort((a,b) => b.likes - a.likes)
+      allBlogs.sort((a, b) => b.likes - a.likes)
       setBlogs(allBlogs)
     }
     fetchData()
@@ -33,7 +31,7 @@ const App = () => {
       const user = JSON.parse(loggedUserJSON)
       setUser(user)
     }
-  },[])
+  }, [])
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -66,16 +64,29 @@ const App = () => {
     }
   }
 
-
   const loginForm = () => (
     <form onSubmit={handleLogin} data-testid="loginForm">
       <div>
-      username <input type="text" value={username} name='Username' data-testid="Username" onChange={({ target }) => setUsername(target.value)}/>
+        username{' '}
+        <input
+          type="text"
+          value={username}
+          name="Username"
+          data-testid="Username"
+          onChange={({ target }) => setUsername(target.value)}
+        />
       </div>
       <div>
-      password <input type="text" value={password} name='Password' data-testid="Password" onChange={({ target }) => setPassword(target.value)}/>
+        password{' '}
+        <input
+          type="text"
+          value={password}
+          name="Password"
+          data-testid="Password"
+          onChange={({ target }) => setPassword(target.value)}
+        />
       </div>
-      <button type='submit'>login</button>
+      <button type="submit">login</button>
     </form>
   )
 
@@ -86,11 +97,13 @@ const App = () => {
 
       setBlogs(blogs.concat(newblog))
       blogFormRef.current.toggleVisibility()
-      setMessage({ type: 'success', text: `a new blog ${newblog.title} by ${newblog.author} added` })
+      setMessage({
+        type: 'success',
+        text: `a new blog ${newblog.title} by ${newblog.author} added`,
+      })
       setTimeout(() => {
         setMessage(null)
       }, 5000)
-
     } catch (error) {
       console.log(error)
       setMessage({ type: 'error', text: error.response.data.error })
@@ -103,9 +116,11 @@ const App = () => {
   const handleChangeLike = async (id, newBlogObject) => {
     try {
       const newblog = await blogService.changeBlog(id, newBlogObject)
-      setBlogs(blogs.map(blog => blog.id === id ?
-        { ...blog, likes: newblog.likes }
-        : blog))
+      setBlogs(
+        blogs.map((blog) =>
+          blog.id === id ? { ...blog, likes: newblog.likes } : blog,
+        ),
+      )
     } catch (error) {
       console.log(error)
       setMessage({ type: 'error', text: error.response.data.error })
@@ -118,7 +133,7 @@ const App = () => {
   const handleRemoveBlog = async (id) => {
     try {
       await blogService.deleteBlog(id)
-      setBlogs(blogs.filter(blog => blog.id !== id ))
+      setBlogs(blogs.filter((blog) => blog.id !== id))
     } catch (error) {
       console.log(error)
       setMessage({ type: 'error', text: error.response.data.error })
@@ -131,8 +146,8 @@ const App = () => {
   const blogFormRef = useRef()
 
   const createForm = () => (
-    <Togglable buttonLabel='create new blog' ref={blogFormRef}>
-      <BlogForm createBlog={handleCreate}/>
+    <Togglable buttonLabel="create new blog" ref={blogFormRef}>
+      <BlogForm createBlog={handleCreate} />
     </Togglable>
   )
 
@@ -149,11 +164,20 @@ const App = () => {
     <div>
       <h2>blogs</h2>
       <Notification message={message} />
-      <div><p>{user.name} logged in <button onClick={handleLogOut}>log out</button></p></div>
+      <div>
+        <p>
+          {user.name} logged in <button onClick={handleLogOut}>log out</button>
+        </p>
+      </div>
       {createForm()}
-      {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} changeBlog={handleChangeLike} removeBlog={handleRemoveBlog}/>
-      )}
+      {blogs.map((blog) => (
+        <Blog
+          key={blog.id}
+          blog={blog}
+          changeBlog={handleChangeLike}
+          removeBlog={handleRemoveBlog}
+        />
+      ))}
     </div>
   )
 }

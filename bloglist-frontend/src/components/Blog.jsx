@@ -11,7 +11,7 @@ const Blog = ({ blog, changeBlog, removeBlog }) => {
     paddingLeft: 2,
     border: 'solid',
     borderWidth: 1,
-    marginBottom: 5
+    marginBottom: 5,
   }
 
   const toggleVisibility = () => {
@@ -23,7 +23,7 @@ const Blog = ({ blog, changeBlog, removeBlog }) => {
     const newBlog = {
       ...blog,
       likes: blog.likes + 1,
-      user: blog.user.id
+      user: blog.user.id,
     }
     delete newBlog.id
     changeBlog(blog.id, newBlog)
@@ -38,17 +38,26 @@ const Blog = ({ blog, changeBlog, removeBlog }) => {
     }
   }
 
-  return(
+  return (
     <div style={blogStyle}>
       <div>
-        <span>{blog.title}</span> <span>{blog.author}</span><button style={hideWhenVisble} onClick={toggleVisibility}>view</button>
-        <button style={showWhenVisble} onClick={toggleVisibility}>hide</button>
+        <span>{blog.title}</span> <span>{blog.author}</span>
+        <button style={hideWhenVisble} onClick={toggleVisibility}>
+          view
+        </button>
+        <button style={showWhenVisble} onClick={toggleVisibility}>
+          hide
+        </button>
       </div>
-      <div style={showWhenVisble} className='blogDetails'>
+      <div style={showWhenVisble} className="blogDetails">
         <div>{blog.url}</div>
-        <div>likes {blog.likes} <button onClick={handleLike}>like</button></div>
+        <div>
+          likes {blog.likes} <button onClick={handleLike}>like</button>
+        </div>
         <div>{blog.user.name}</div>
-        <div><button onClick={handleRemove}>remove</button></div>
+        <div>
+          <button onClick={handleRemove}>remove</button>
+        </div>
       </div>
     </div>
   )
