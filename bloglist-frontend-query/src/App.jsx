@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useContext } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import Notification from './components/Notification'
 import Blog from './components/Blog'
 import Togglable from './components/Togglable'
@@ -8,7 +9,6 @@ import blogService from './services/blogs'
 import loginService from './services/login'
 import './index.css'
 
-// import { showNotification } from './reducers/notificationReducer'
 import {
   setBlog,
   createBlog,
@@ -16,25 +16,15 @@ import {
   deleteBlog,
 } from './reducers/blogReducer'
 import { saveUser } from './reducers/userReducer'
-import NotificationContext from "./components/NotificationContext"
+import NotificationContext from './components/NotificationContext'
 
 const App = () => {
   const dispatch = useDispatch()
-  const blogLists = useSelector((state) => state.blog)
+  const queryClient = useQueryClient()
   const user = useSelector((state) => state.user)
-  const [notification, notificationDispatch] = useContext(NotificationContext)
+  const [, notificationDispatch] = useContext(NotificationContext)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-
-  useEffect(() => {
-    async function fetchData() {
-      const allBlogs = await blogService.getAll()
-      // sort the blog posts by the number of likes
-      allBlogs.sort((a, b) => b.likes - a.likes)
-      dispatch(setBlog(allBlogs))
-    }
-    fetchData()
-  }, [dispatch])
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogUser')
@@ -43,6 +33,45 @@ const App = () => {
       dispatch(saveUser(user))
     }
   }, [dispatch])
+
+  const result = useQuery({
+    queryKey: ['blogs'],
+    queryFn: async () => {
+      const allBlogs = await blogService.getAll()
+      return allBlogs
+    },
+  })
+  console.log(JSON.parse(JSON.stringify(result)))
+
+  const showErrorNotification = (error) => {
+    notificationDispatch({
+      type: 'SHOW',
+      payload: {
+        type: 'error',
+        text: error.response.data.error
+          ? error.response.data.error
+          : error.response.statusText,
+      },
+    })
+  }
+
+  const newBlogMutation = useMutation({
+    mutationFn: blogService.create,
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+      console.log(`create ${response.title}`)
+      notificationDispatch({
+        type: 'SHOW',
+        payload: {
+          type: 'success',
+          text: `a new blog "${response.title}" by ${response.author} added`,
+        },
+      })
+    },
+    onError: (error) => {
+      showErrorNotification(error)
+    },
+  })
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -61,7 +90,7 @@ const App = () => {
         payload: {
           type: 'error',
           text: 'Wrong username or password',
-        }
+        },
       })
       console.log('Wrong credentials')
     }
@@ -105,27 +134,8 @@ const App = () => {
   )
 
   const handleCreate = async (newBlogObject) => {
-    try {
-      const newblog = await blogService.create(newBlogObject)
-      console.log(`create ${newblog.title}`)
-      dispatch(createBlog(newblog))
-      blogFormRef.current.toggleVisibility()
-      notificationDispatch({
-        type: 'SHOW',
-        payload: {
-          type: 'success',
-          text: `a new blog "${newblog.title}" by ${newblog.author} added`,
-        }
-      })
-    } catch (error) {
-      console.log(error)
-      notificationDispatch({
-        type: 'error',
-        text: error.response.data.error
-          ? error.response.data.error
-          : error.response.statusText,
-      })
-    }
+    newBlogMutation.mutate(newBlogObject)
+    blogFormRef.current.toggleVisibility()
   }
 
   const handleChangeLike = async (id, newBlogObject) => {
@@ -134,12 +144,7 @@ const App = () => {
       dispatch(changeBlog({ id: id, newblog: newblog }))
     } catch (error) {
       console.log(error)
-      notificationDispatch({
-        type: 'error',
-        text: error.response.data.error
-          ? error.response.data.error
-          : error.response.statusText,
-      })
+      showErrorNotification(error)
     }
   }
 
@@ -149,12 +154,7 @@ const App = () => {
       dispatch(deleteBlog(id))
     } catch (error) {
       console.log(error)
-      notificationDispatch({
-        type: 'error',
-        text: error.response.data.error
-          ? error.response.data.error
-          : error.response.statusText,
-      })
+      showErrorNotification(error)
     }
   }
 
@@ -185,14 +185,18 @@ const App = () => {
         </p>
       </div>
       {createForm()}
-      {blogLists.map((blog) => (
-        <Blog
-          key={blog.id}
-          blog={blog}
-          changeBlog={handleChangeLike}
-          removeBlog={handleRemoveBlog}
-        />
-      ))}
+      {result.isLoading ? (
+        <div>loading data...</div>
+      ) : (
+        result.data.map((blog) => (
+          <Blog
+            key={blog.id}
+            blog={blog}
+            changeBlog={handleChangeLike}
+            removeBlog={handleRemoveBlog}
+          />
+        ))
+      )}
     </div>
   )
 }
