@@ -1,8 +1,8 @@
 import { useContext } from 'react'
-import NotificationContext from './NotificationContext'
+import GeneralContext from './NotificationContext'
 
 const Notification = () => {
-  const [message, dispatch] = useContext(NotificationContext)
+  const [message, dispatch] = useContext(GeneralContext)
   const clearNotification = (timeout) => {
     setTimeout(() => {
       dispatch({ type: 'CLEAR' })

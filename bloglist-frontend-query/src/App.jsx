@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useContext } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import Notification from './components/Notification'
 import Blog from './components/Blog'
@@ -9,14 +8,13 @@ import blogService from './services/blogs'
 import loginService from './services/login'
 import './index.css'
 
-import { saveUser } from './reducers/userReducer'
-import NotificationContext from './components/NotificationContext'
+import { useNotificationDispatch, useUser, useUserDispatch } from './components/NotificationContext'
 
 const App = () => {
-  const dispatch = useDispatch()
   const queryClient = useQueryClient()
-  const user = useSelector((state) => state.user)
-  const [, notificationDispatch] = useContext(NotificationContext)
+  const user = useUser()
+  const userDispatch = useUserDispatch()
+  const notificationDispatch = useNotificationDispatch()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
@@ -24,9 +22,9 @@ const App = () => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogUser')
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON)
-      dispatch(saveUser(user))
+      userDispatch({ payload: user })
     }
-  }, [dispatch])
+  }, [userDispatch])
 
   const result = useQuery({
     queryKey: ['blogs'],
@@ -93,7 +91,7 @@ const App = () => {
       const user = await loginService.login({ username, password })
 
       window.localStorage.setItem('loggedBlogUser', JSON.stringify(user))
-      dispatch(saveUser(user))
+      userDispatch({ payload: user })
       setUsername('')
       setPassword('')
       blogService.setToken(user.token)
@@ -114,7 +112,7 @@ const App = () => {
     event.preventDefault()
     try {
       window.localStorage.removeItem('loggedBlogUser')
-      dispatch(saveUser(null))
+      userDispatch({ payload: null })
       console.log('Successfully log out')
     } catch (error) {
       console.error(error)
@@ -190,7 +188,7 @@ const App = () => {
       {result.isLoading ? (
         <div>loading data...</div>
       ) : (
-        result.data.map((blog) => (
+        result.data.sort((a, b) => b.likes - a.likes).map((blog) => (
           <Blog
             key={blog.id}
             blog={blog}

@@ -1,4 +1,4 @@
-import { createContext, useReducer } from 'react'
+import { createContext, useReducer, useContext } from 'react'
 
 const notificationReducer = (state, action) => {
   switch (action.type) {
@@ -11,18 +11,36 @@ const notificationReducer = (state, action) => {
   }
 }
 
-const NotificationContext = createContext()
+const userReducer = (state, action) => {
+  return action.payload
+}
 
-export const NotificationContextProvider = (props) => {
+const GeneralContext = createContext()
+
+export const GeneralContextProvider = (props) => {
   const [notification, notificationDispatch] = useReducer(
     notificationReducer,
     null
   )
+
+  const [user, userDispatch] = useReducer(userReducer, null)
   return (
-    <NotificationContext.Provider value={[notification, notificationDispatch]}>
+    <GeneralContext.Provider value={[notification, notificationDispatch, user, userDispatch]}>
       {props.children}
-    </NotificationContext.Provider>
+    </GeneralContext.Provider>
   )
 }
 
-export default NotificationContext
+export const useNotificationDispatch = () => {
+  return useContext(GeneralContext)[1]
+}
+
+export const useUser = () => {
+  return useContext(GeneralContext)[2]
+}
+
+export const useUserDispatch = () => {
+  return useContext(GeneralContext)[3]
+}
+
+export default GeneralContext
