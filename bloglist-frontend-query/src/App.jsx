@@ -9,12 +9,6 @@ import blogService from './services/blogs'
 import loginService from './services/login'
 import './index.css'
 
-import {
-  setBlog,
-  createBlog,
-  changeBlog,
-  deleteBlog,
-} from './reducers/blogReducer'
 import { saveUser } from './reducers/userReducer'
 import NotificationContext from './components/NotificationContext'
 
@@ -67,6 +61,26 @@ const App = () => {
           text: `a new blog "${response.title}" by ${response.author} added`,
         },
       })
+    },
+    onError: (error) => {
+      showErrorNotification(error)
+    },
+  })
+
+  const likeBlogMutation = useMutation({
+    mutationFn: blogService.changeBlog,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+    },
+    onError: (error) => {
+      showErrorNotification(error)
+    },
+  })
+
+  const removeBlogMutation = useMutation({
+    mutationFn: blogService.deleteBlog,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
     },
     onError: (error) => {
       showErrorNotification(error)
@@ -138,24 +152,12 @@ const App = () => {
     blogFormRef.current.toggleVisibility()
   }
 
-  const handleChangeLike = async (id, newBlogObject) => {
-    try {
-      const newblog = await blogService.changeBlog(id, newBlogObject)
-      dispatch(changeBlog({ id: id, newblog: newblog }))
-    } catch (error) {
-      console.log(error)
-      showErrorNotification(error)
-    }
+  const handleChangeLike = async (id, newObject) => {
+    likeBlogMutation.mutate({ id, newObject })
   }
 
   const handleRemoveBlog = async (id) => {
-    try {
-      await blogService.deleteBlog(id)
-      dispatch(deleteBlog(id))
-    } catch (error) {
-      console.log(error)
-      showErrorNotification(error)
-    }
+    removeBlogMutation.mutate(id)
   }
 
   const blogFormRef = useRef()
