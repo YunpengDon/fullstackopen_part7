@@ -1,39 +1,33 @@
 import { useState, useEffect, useRef, useContext } from 'react'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { BrowserRouter as Router, Link, Routes, Route } from 'react-router-dom'
 import Notification from './components/Notification'
 import Blog from './components/Blog'
 import Togglable from './components/Togglable'
 import BlogForm from './components/BlogForm'
+import Users from './components/Users'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import userService from './services/users'
 import './index.css'
 
-import { useNotificationDispatch, useUser, useUserDispatch } from './components/NotificationContext'
+import {
+  useNotificationDispatch,
+  useUser,
+  useUserDispatch,
+  useUserList,
+  useUserListDispatch,
+} from './components/GeneralContext'
 
 const App = () => {
   const queryClient = useQueryClient()
   const user = useUser()
   const userDispatch = useUserDispatch()
   const notificationDispatch = useNotificationDispatch()
+  const userList = useUserList()
+  const userListDispatch = useUserListDispatch()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-
-  useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedBlogUser')
-    if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON)
-      userDispatch({ payload: user })
-    }
-  }, [userDispatch])
-
-  const result = useQuery({
-    queryKey: ['blogs'],
-    queryFn: async () => {
-      const allBlogs = await blogService.getAll()
-      return allBlogs
-    },
-  })
-  console.log(JSON.parse(JSON.stringify(result)))
 
   const showErrorNotification = (error) => {
     notificationDispatch({
@@ -46,6 +40,39 @@ const App = () => {
       },
     })
   }
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem('loggedBlogUser')
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON)
+      userDispatch({ payload: user })
+    }
+  }, [userDispatch])
+
+  useEffect(() => {
+    if (user !== null) {
+      userService
+        .getUsers()
+        .then((response) => {
+          userListDispatch({
+            type: 'INIT',
+            payload: response,
+          })
+        })
+        .catch((error) => {
+          console.log(error)
+          showErrorNotification(error)
+        })
+    }
+  }, [user])
+
+  const result = useQuery({
+    queryKey: ['blogs'],
+    queryFn: async () => {
+      const allBlogs = await blogService.getAll()
+      return allBlogs
+    },
+  })
+  console.log(JSON.parse(JSON.stringify(result)))
 
   const newBlogMutation = useMutation({
     mutationFn: blogService.create,
@@ -166,6 +193,26 @@ const App = () => {
     </Togglable>
   )
 
+  const BlogLists = () => (
+    <>
+      {createForm()}
+      {result.isLoading ? (
+        <div>loading data...</div>
+      ) : (
+        result.data
+          .sort((a, b) => b.likes - a.likes)
+          .map((blog) => (
+            <Blog
+              key={blog.id}
+              blog={blog}
+              changeBlog={handleChangeLike}
+              removeBlog={handleRemoveBlog}
+            />
+          ))
+      )}
+    </>
+  )
+
   if (user === null) {
     return (
       <div>
@@ -175,8 +222,9 @@ const App = () => {
       </div>
     )
   }
+
   return (
-    <div>
+    <Router>
       <h2>blogs</h2>
       <Notification />
       <div>
@@ -184,20 +232,12 @@ const App = () => {
           {user.name} logged in <button onClick={handleLogOut}>log out</button>
         </p>
       </div>
-      {createForm()}
-      {result.isLoading ? (
-        <div>loading data...</div>
-      ) : (
-        result.data.sort((a, b) => b.likes - a.likes).map((blog) => (
-          <Blog
-            key={blog.id}
-            blog={blog}
-            changeBlog={handleChangeLike}
-            removeBlog={handleRemoveBlog}
-          />
-        ))
-      )}
-    </div>
+
+      <Routes>
+        <Route path="/users" element={<Users users={userList} />} />
+        <Route path="/" element={<BlogLists />} />
+      </Routes>
+    </Router>
   )
 }
 

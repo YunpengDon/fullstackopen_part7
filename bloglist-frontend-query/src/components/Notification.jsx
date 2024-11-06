@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import GeneralContext from './NotificationContext'
+import GeneralContext from './GeneralContext'
 
 const Notification = () => {
   const [message, dispatch] = useContext(GeneralContext)
