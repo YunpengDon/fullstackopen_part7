@@ -2,7 +2,9 @@ import { useState, useEffect, useRef, useContext,useCallback } from 'react'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { BrowserRouter as Router, Link, Routes, Route, useMatch } from 'react-router-dom'
 import Notification from './components/Notification'
+import NavBar from './components/NavBar'
 import Blog from './components/Blog'
+import SingleBlogView from './components/SingleBlogView'
 import Togglable from './components/Togglable'
 import BlogForm from './components/BlogForm'
 import Users from './components/Users'
@@ -31,10 +33,13 @@ const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  const match = useMatch('/users/:id')
-  const userMatehedByID = match
-    ? userList.find(user => user.id === match.params.id)
+  const matchUser = useMatch('/users/:id')
+  const matchBlog = useMatch('/blogs/:id')
+  const userMatchedByID = matchUser
+    ? userList.find(user => user.id === matchUser.params.id)
     : null
+
+
 
 
   const showErrorNotification = useCallback((error) => {
@@ -230,19 +235,20 @@ const App = () => {
     )
   }
 
+  const blogMatchedByID = result.isSuccess && matchBlog
+    ? result.data.find(blog => blog.id === matchBlog.params.id)
+    : null
+
   return (
     <>
+      <NavBar>{user.name} logged in <button onClick={handleLogOut}>log out</button></NavBar>
       <h2>blogs</h2>
       <Notification />
-      <div>
-        <p>
-          {user.name} logged in <button onClick={handleLogOut}>log out</button>
-        </p>
-      </div>
 
       <Routes>
-        <Route path='/users/:id' element={<User user={userMatehedByID}/>}/>
+        <Route path='/users/:id' element={<User user={userMatchedByID}/>}/>
         <Route path="/users" element={<Users users={userList} />} />
+        <Route path='/blogs/:id' element={<SingleBlogView blog={blogMatchedByID} changeBlog={handleChangeLike}/>}/>
         <Route path="/" element={<BlogLists />} />
       </Routes>
     </>
