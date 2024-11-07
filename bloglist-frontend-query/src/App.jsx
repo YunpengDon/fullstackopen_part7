@@ -1,6 +1,12 @@
-import { useState, useEffect, useRef, useContext,useCallback } from 'react'
+import { useState, useEffect, useRef, useContext, useCallback } from 'react'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { BrowserRouter as Router, Link, Routes, Route, useMatch } from 'react-router-dom'
+import {
+  BrowserRouter as Router,
+  Link,
+  Routes,
+  Route,
+  useMatch,
+} from 'react-router-dom'
 import Notification from './components/Notification'
 import NavBar from './components/NavBar'
 import Blog from './components/Blog'
@@ -22,7 +28,6 @@ import {
   useUserListDispatch,
 } from './components/GeneralContext'
 
-
 const App = () => {
   const queryClient = useQueryClient()
   const user = useUser()
@@ -36,21 +41,21 @@ const App = () => {
   const matchUser = useMatch('/users/:id')
   const matchBlog = useMatch('/blogs/:id')
   const userMatchedByID = matchUser
-    ? userList.find(user => user.id === matchUser.params.id)
+    ? userList.find((user) => user.id === matchUser.params.id)
     : null
 
-
-
-
-  const showErrorNotification = useCallback((error) => {
-    notificationDispatch({
-      type: 'SHOW',
-      payload: {
-        type: 'error',
-        text: error.response.data.error || error.response.statusText,
-      },
-    })
-  },[notificationDispatch])
+  const showErrorNotification = useCallback(
+    (error) => {
+      notificationDispatch({
+        type: 'SHOW',
+        payload: {
+          type: 'error',
+          text: error.response.data.error || error.response.statusText,
+        },
+      })
+    },
+    [notificationDispatch]
+  )
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogUser')
@@ -106,6 +111,16 @@ const App = () => {
 
   const likeBlogMutation = useMutation({
     mutationFn: blogService.changeBlog,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+    },
+    onError: (error) => {
+      showErrorNotification(error)
+    },
+  })
+
+  const addCommentMutation = useMutation({
+    mutationFn: blogService.addComment,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blogs'] })
     },
@@ -193,6 +208,11 @@ const App = () => {
     likeBlogMutation.mutate({ id, newObject })
   }
 
+  const handleAddComment = async (id, comment) => {
+    console.log('handle add comment', comment)
+    addCommentMutation.mutate({ id, comment })
+  }
+
   const handleRemoveBlog = async (id) => {
     removeBlogMutation.mutate(id)
   }
@@ -235,20 +255,32 @@ const App = () => {
     )
   }
 
-  const blogMatchedByID = result.isSuccess && matchBlog
-    ? result.data.find(blog => blog.id === matchBlog.params.id)
-    : null
+  const blogMatchedByID =
+    result.isSuccess && matchBlog
+      ? result.data.find((blog) => blog.id === matchBlog.params.id)
+      : null
 
   return (
     <>
-      <NavBar>{user.name} logged in <button onClick={handleLogOut}>log out</button></NavBar>
+      <NavBar>
+        {user.name} logged in <button onClick={handleLogOut}>log out</button>
+      </NavBar>
       <h2>blogs</h2>
       <Notification />
 
       <Routes>
-        <Route path='/users/:id' element={<User user={userMatchedByID}/>}/>
+        <Route path="/users/:id" element={<User user={userMatchedByID} />} />
         <Route path="/users" element={<Users users={userList} />} />
-        <Route path='/blogs/:id' element={<SingleBlogView blog={blogMatchedByID} changeBlog={handleChangeLike}/>}/>
+        <Route
+          path="/blogs/:id"
+          element={
+            <SingleBlogView
+              blog={blogMatchedByID}
+              changeBlog={handleChangeLike}
+              addComment={handleAddComment}
+            />
+          }
+        />
         <Route path="/" element={<BlogLists />} />
       </Routes>
     </>

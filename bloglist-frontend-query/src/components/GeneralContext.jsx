@@ -3,12 +3,12 @@ import userService from '../services/users'
 
 const notificationReducer = (state, action) => {
   switch (action.type) {
-  case 'SHOW':
-    return action.payload
-  case 'CLEAR':
-    return null
-  default:
-    return state
+    case 'SHOW':
+      return action.payload
+    case 'CLEAR':
+      return null
+    default:
+      return state
   }
 }
 
@@ -18,10 +18,10 @@ const userReducer = (state, action) => {
 
 const userListReducer = (state, action) => {
   switch (action.type) {
-  case 'INIT':
-    return action.payload
-  default:
-    return state
+    case 'INIT':
+      return action.payload
+    default:
+      return state
   }
 }
 

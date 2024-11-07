@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom"
+import { Link } from 'react-router-dom'
 
 const Users = ({ users }) => {
   if (users.length === 0) {
@@ -18,7 +18,9 @@ const Users = ({ users }) => {
           {users.map((user) => {
             return (
               <tr key={user.id}>
-                <td><Link to={`/users/${user.id}`}>{user.name}</Link></td>
+                <td>
+                  <Link to={`/users/${user.id}`}>{user.name}</Link>
+                </td>
                 <td>{user.blogs.length}</td>
               </tr>
             )
