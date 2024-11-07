@@ -19,6 +19,7 @@ import blogService from './services/blogs'
 import loginService from './services/login'
 import userService from './services/users'
 import './index.css'
+import { Button, Container, Typography, TextField, TableContainer, Table, TableBody, Paper} from "@mui/material"
 
 import {
   useNotificationDispatch,
@@ -176,8 +177,7 @@ const App = () => {
   const loginForm = () => (
     <form onSubmit={handleLogin} data-testid="loginForm">
       <div>
-        username{' '}
-        <input
+        <TextField label="User Name"
           type="text"
           value={username}
           name="Username"
@@ -186,8 +186,7 @@ const App = () => {
         />
       </div>
       <div>
-        password{' '}
-        <input
+        <TextField label="Password"
           type="text"
           value={password}
           name="Password"
@@ -195,7 +194,7 @@ const App = () => {
           onChange={({ target }) => setPassword(target.value)}
         />
       </div>
-      <button type="submit">login</button>
+      <Button type="submit" variant="contained">login</Button>
     </form>
   )
 
@@ -231,16 +230,22 @@ const App = () => {
       {result.isLoading ? (
         <div>loading data...</div>
       ) : (
-        result.data
-          .sort((a, b) => b.likes - a.likes)
-          .map((blog) => (
-            <Blog
-              key={blog.id}
-              blog={blog}
-              changeBlog={handleChangeLike}
-              removeBlog={handleRemoveBlog}
-            />
-          ))
+        <TableContainer component={Paper}>
+          <Table>
+            <TableBody>
+              {result.data
+                .sort((a, b) => b.likes - a.likes)
+                .map((blog) => (
+                  <Blog
+                    key={blog.id}
+                    blog={blog}
+                    changeBlog={handleChangeLike}
+                    removeBlog={handleRemoveBlog}
+                  />
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
     </>
   )
@@ -248,7 +253,7 @@ const App = () => {
   if (user === null) {
     return (
       <div>
-        <h2>Log in to application</h2>
+        <Typography variant='h2'>Log in to application</Typography>
         <Notification />
         {loginForm()}
       </div>
@@ -261,11 +266,11 @@ const App = () => {
       : null
 
   return (
-    <>
+    <Container>
       <NavBar>
-        {user.name} logged in <button onClick={handleLogOut}>log out</button>
+        <em>{user.name} logged in </em><Button onClick={handleLogOut} color="inherit">log out</Button>
       </NavBar>
-      <h2>blogs</h2>
+      <h2>Blogs App</h2>
       <Notification />
 
       <Routes>
@@ -283,7 +288,7 @@ const App = () => {
         />
         <Route path="/" element={<BlogLists />} />
       </Routes>
-    </>
+    </Container>
   )
 }
 

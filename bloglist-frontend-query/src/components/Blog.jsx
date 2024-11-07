@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { TableRow, TableCell} from '@mui/material'
+
 const Blog = ({ blog, changeBlog, removeBlog }) => {
   const [detailVisible, setDetailVisible] = useState(false)
   const hideWhenVisble = { display: detailVisible ? 'none' : '' }
@@ -40,18 +42,23 @@ const Blog = ({ blog, changeBlog, removeBlog }) => {
   }
 
   return (
-    <div style={blogStyle}>
-      <div>
-        <Link to={`/blogs/${blog.id}`}>
-          <span>{blog.title}</span> <span>{blog.author}</span>
-        </Link>
-        {/* <button style={hideWhenVisble} onClick={toggleVisibility}>
+    <div >
+      <TableRow>
+        <TableCell>
+          <Link to={`/blogs/${blog.id}`}>
+            <span>{blog.title}</span>
+          </Link>
+        </TableCell>
+        <TableCell>
+          <span>{blog.author}</span>
+          {/* <button style={hideWhenVisble} onClick={toggleVisibility}>
           view
         </button>
         <button style={showWhenVisble} onClick={toggleVisibility}>
           hide
         </button> */}
-      </div>
+        </TableCell>
+      </TableRow>
       <div style={showWhenVisble} className="blogDetails">
         <div>{blog.url}</div>
         <div>

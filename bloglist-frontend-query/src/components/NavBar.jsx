@@ -1,23 +1,29 @@
 import { Link } from 'react-router-dom'
 
+import { AppBar, Button, Toolbar } from "@mui/material"
+
 const NavBar = (props) => {
   const navBarStyle = {
     backgroundColor: 'lightgray',
   }
 
-  const padding = {
-    padding: 5,
+  const positionLeft = {
+    marginLeft: 'auto',
   }
   return (
-    <div style={navBarStyle}>
-      <Link to="/" style={padding}>
+    <AppBar position='static'>
+      <Toolbar>
+        <Button color="inherit" component={Link} to="/">
         blogs
-      </Link>
-      <Link to="/users" style={padding}>
+        </Button>
+        <Button color="inherit" component={Link} to="/users">
         users
-      </Link>
-      {props.children}
-    </div>
+        </Button>
+        <div style={positionLeft}>
+          {props.children}
+        </div>
+      </Toolbar>
+    </AppBar>
   )
 }
 

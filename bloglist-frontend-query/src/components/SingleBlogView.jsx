@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { TextField, Button } from "@mui/material";
 
 const SingleBlogView = ({ blog, changeBlog, addComment }) => {
   const [commentInput, setCommentInput] = useState('')
@@ -33,13 +34,13 @@ const SingleBlogView = ({ blog, changeBlog, addComment }) => {
         <a href={blog.url}>{blog.url}</a>
       </div>
       <div>
-        likes {blog.likes} <button onClick={handleLike}>like</button>
+        likes {blog.likes} <Button variant="contained" onClick={handleLike}>like</Button>
       </div>
       <div>{blog.user.name}</div>
       <h3>comments</h3>
       <form onSubmit={handleSubmitCommet}>
-        <input type="text" name="comment" />
-        <button type="submit">add comment</button>
+        <TextField size="small" label="Add your comment" variant="outlined" type="text" name="comment" />
+        <Button variant="outlined" type="submit">add comment</Button>
       </form>
       <ul>
         {blog.comments.map((comment) => {
