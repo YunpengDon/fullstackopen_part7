@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef, useContext } from 'react'
+import { useState, useEffect, useRef, useContext,useCallback } from 'react'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { BrowserRouter as Router, Link, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Link, Routes, Route, useMatch } from 'react-router-dom'
 import Notification from './components/Notification'
 import Blog from './components/Blog'
 import Togglable from './components/Togglable'
 import BlogForm from './components/BlogForm'
 import Users from './components/Users'
+import User from './components/User'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import userService from './services/users'
@@ -19,6 +20,7 @@ import {
   useUserListDispatch,
 } from './components/GeneralContext'
 
+
 const App = () => {
   const queryClient = useQueryClient()
   const user = useUser()
@@ -29,17 +31,22 @@ const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  const showErrorNotification = (error) => {
+  const match = useMatch('/users/:id')
+  const userMatehedByID = match
+    ? userList.find(user => user.id === match.params.id)
+    : null
+
+
+  const showErrorNotification = useCallback((error) => {
     notificationDispatch({
       type: 'SHOW',
       payload: {
         type: 'error',
-        text: error.response.data.error
-          ? error.response.data.error
-          : error.response.statusText,
+        text: error.response.data.error || error.response.statusText,
       },
     })
-  }
+  },[notificationDispatch])
+
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogUser')
     if (loggedUserJSON) {
@@ -63,7 +70,7 @@ const App = () => {
           showErrorNotification(error)
         })
     }
-  }, [user])
+  }, [showErrorNotification, user, userListDispatch])
 
   const result = useQuery({
     queryKey: ['blogs'],
@@ -224,7 +231,7 @@ const App = () => {
   }
 
   return (
-    <Router>
+    <>
       <h2>blogs</h2>
       <Notification />
       <div>
@@ -234,10 +241,11 @@ const App = () => {
       </div>
 
       <Routes>
+        <Route path='/users/:id' element={<User user={userMatehedByID}/>}/>
         <Route path="/users" element={<Users users={userList} />} />
         <Route path="/" element={<BlogLists />} />
       </Routes>
-    </Router>
+    </>
   )
 }
 
